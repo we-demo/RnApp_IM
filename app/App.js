@@ -5,9 +5,14 @@ import {
   Text, TextInput, View,
 } from 'react-native'
 import Message from './components/Message'
+import ws from './ws'
 import Dimensions from 'Dimensions'
 import _ from 'lodash'
 
+const user = {
+  id: 'fritz.lin',
+  name: 'Fritz',
+}
 const BarHeight = 20
 const windowHeight = Dimensions.get('window').height - BarHeight
 const scrollHeight = windowHeight - 40
@@ -16,8 +21,11 @@ export default class App extends Component {
   constructor () {
     super()
     this.state = {
-      messages: _.times(100, _.constant({
-        from: 'John',
+      messages: _.times(20, _.constant({
+        user: {
+          id: 'royson.huang',
+          name: 'Royson',
+        },
         text: 'Hello!'
       })),
       text: 'aaaa',
@@ -29,12 +37,26 @@ export default class App extends Component {
   }
 
   componentDidMount () {
-    Keyboard.addListener('keyboardWillShow', this.keyboardWillShow);
-    Keyboard.addListener('keyboardWillHide', this.keyboardWillHide);
+    Keyboard.addListener('keyboardWillShow', this.keyboardWillShow)
+    Keyboard.addListener('keyboardWillHide', this.keyboardWillHide)
+
+    ws.onmessage = (e) => {
+      console.log('WebSocket received: ' + e.data)
+
+      // dispatch(receiveMessage(e.data))
+      const newMsg = JSON.parse(e.data)
+      this.setState({
+        messages: this.state.messages.concat(newMsg)
+      })
+    }
+
+    setTimeout(() => {
+      this.sendMessage({ type: 'serverJOIN' })
+    }, 200)
   }
 
   keyboardWillShow(e) {
-    const newSize = windowHeight - e.endCoordinates.height;
+    const newSize = windowHeight - e.endCoordinates.height
     Animated.timing(this.state.visibleHeight, {
       toValue: newSize, duration: 300,
     }).start()
@@ -49,6 +71,13 @@ export default class App extends Component {
     if (y > scrollHeight) {
       this.refs.scroller.scrollTo({ y: y - scrollHeight })
     }
+  }
+
+  sendMessage (msg) {
+    ws.send(JSON.stringify({
+      user,
+      ...msg,
+    }))
   }
 
   render () {
@@ -69,7 +98,8 @@ export default class App extends Component {
             <TextInput style={styles.textInput}
               onChangeText={(text) => this.setState({text})}
               onSubmitEditing={() => {
-                this.setState({text: ''})
+                this.sendMessage({ text: this.state.text })
+                this.setState({ text: '' })
               }}
               value={this.state.text} />
           </View>
@@ -91,11 +121,12 @@ const styles = StyleSheet.create({
 
   msgsView: {
     flex: 1,
-    padding: 10,
-    paddingBottom: 0,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     borderColor: 'gray',
+  },
+  scrollContainer: {
+    padding: 10,
   },
 
   textInput: {

@@ -8,7 +8,7 @@ export default class Message extends Component {
     return (
       <View>
         <Text style={styles.text}>
-          {this.props.message.from}
+          {this.props.message.user.name}
           {': '}
           {this.props.message.text}
         </Text>
