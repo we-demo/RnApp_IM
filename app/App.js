@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import {
-  Animated, Easing, Keyboard,
+  Animated, Easing,
   ScrollView, StyleSheet,
   Text, TextInput, View,
 } from 'react-native'
+import Spacer from 'react-native-keyboard-spacer'
 import Message from './components/Message'
 import ws from './ws'
 import Dimensions from 'Dimensions'
@@ -31,15 +32,10 @@ export default class App extends Component {
       text: 'aaaa',
       visibleHeight: new Animated.Value(windowHeight),
     }
-    this.keyboardWillShow = this.keyboardWillShow.bind(this)
-    this.keyboardWillHide = this.keyboardWillHide.bind(this)
     this.updateScrollView = this.updateScrollView.bind(this)
   }
 
   componentDidMount () {
-    Keyboard.addListener('keyboardWillShow', this.keyboardWillShow)
-    Keyboard.addListener('keyboardWillHide', this.keyboardWillHide)
-
     ws.onmessage = (e) => {
       console.log('WebSocket received: ' + e.data)
 
@@ -53,18 +49,6 @@ export default class App extends Component {
     setTimeout(() => {
       this.sendMessage({ type: 'serverJOIN' })
     }, 200)
-  }
-
-  keyboardWillShow(e) {
-    const newSize = windowHeight - e.endCoordinates.height
-    Animated.timing(this.state.visibleHeight, {
-      toValue: newSize, duration: 300,
-    }).start()
-  }
-  keyboardWillHide() {
-    Animated.timing(this.state.visibleHeight, {
-      toValue: windowHeight, duration: 10
-    }).start()
   }
 
   updateScrollView (x, y) {
@@ -102,6 +86,8 @@ export default class App extends Component {
                 this.setState({ text: '' })
               }}
               value={this.state.text} />
+
+            <Spacer />
           </View>
         </Animated.View>
       </View>
