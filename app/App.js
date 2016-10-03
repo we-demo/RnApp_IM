@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import {
-  Keyboard,
-  ScrollView, StyleSheet,
+  StyleSheet,
   Text, TextInput, View,
 } from 'react-native'
 import Spacer from 'react-native-keyboard-spacer'
 import Message from './components/Message'
+import AutoScroll from './components/AutoScroll'
 import ws from './ws'
 import _ from 'lodash'
 
@@ -35,8 +35,6 @@ export default class App extends Component {
 
     // self binding
     ;[
-      'handleKeyboardShow', 'handleKeyboardHide',
-      'handleScroll', 'handleLayout', 'handleContentChange',
       'handleTextChange', 'handleSubmit',
       'handleMessage',
     ].forEach((method) => {
@@ -50,67 +48,9 @@ export default class App extends Component {
     setTimeout(() => {
       this.sendMessage({ type: 'serverJOIN' })
     }, 200)
-
-    Keyboard.addListener('keyboardDidShow', this.handleKeyboardShow)
-    Keyboard.addListener('keyboardDidHide', this.handleKeyboardHide)
   }
   componentWillUnmount () {
     ws.onmessage = noop
-    Keyboard.removeListener('keyboardDidShow', this.handleKeyboardShow)
-    Keyboard.removeListener('keyboardDidHide', this.handleKeyboardHide)
-  }
-
-  handleKeyboardShow () {
-    const { scrollHeight, contentHeight } = this
-    if (contentHeight > scrollHeight) {
-      this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
-    }
-  }
-  handleKeyboardHide () {
-    const { scrollY, scrollHeight, contentHeight } = this
-    if (scrollY > contentHeight - scrollHeight) {
-      this.refs.scroller.scrollTo({ y: 0 })
-    }
-    else 
-    if (contentHeight > scrollHeight) {
-      this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
-    }
-  }
-
-  handleScroll (e) {
-    this.scrollY = e.nativeEvent.contentOffset.y
-    console.log('handleScroll', { scrollY: this.scrollY })
-  }
-  handleLayout (e) {
-    this.scrollHeight = e.nativeEvent.layout.height
-    console.log('handleLayout', { scrollHeight: this.scrollHeight })
-  }
-
-  handleContentChange (w, h) {
-    this.contentHeight = h
-
-    if (this.scrollHeight == null) {
-      setTimeout(() => {
-        this.scrollToBottomIfNecessary()
-      }, 500)
-    }
-    else {
-      this.scrollToBottomIfNecessary()
-    }
-  }
-
-  scrollToBottomIfNecessary () {
-    // todo: range detection
-    this.scrollToBottom()
-  }
-  scrollToBottom () {
-    const { scrollHeight, contentHeight } = this
-    if (scrollHeight == null) {
-      return
-    }
-    if (contentHeight > scrollHeight) {
-      this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
-    }
   }
 
   handleTextChange (text) {
@@ -144,16 +84,12 @@ export default class App extends Component {
       <View style={styles.bg}>
         <View style={styles.container}>
           <View style={styles.msgsView}>
-            <ScrollView ref="scroller"
-              contentContainerStyle={styles.scrollContainer}
-              scrollEventThrottle={16}
-              onScroll={this.handleScroll}
-              onLayout={this.handleLayout}
-              onContentSizeChange={this.handleContentChange}>
+            <AutoScroll
+              contentContainerStyle={styles.scrollContainer}>
               {this.state.messages.map((msg, i) => {
                 return <Message key={i} message={msg} />
               })}
-            </ScrollView>
+            </AutoScroll>
           </View>
 
           <TextInput ref="textInput" style={styles.textInput}
