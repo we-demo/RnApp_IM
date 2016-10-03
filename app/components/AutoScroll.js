@@ -1,4 +1,6 @@
 // https://github.com/fritx/react-native-auto-scroll
+// UX Interactions kept consistent with Wechat App
+
 import React, { Component } from 'react'
 import { Keyboard, ScrollView } from 'react-native'
 
@@ -28,20 +30,23 @@ export default class AutoScroll extends Component {
     Keyboard.removeListener('keyboardDidHide', this.handleKeyboardHide)
   }
 
+  // todo: handle layout instead of keyboard
   handleKeyboardShow () {
-    const { scrollHeight, contentHeight } = this
-    if (contentHeight > scrollHeight) {
-      this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
-    }
+    this.scrollToBottom()
   }
   handleKeyboardHide () {
     const { scrollY, scrollHeight, contentHeight } = this
+
+    // fix top blank if exsits
     if (scrollY > contentHeight - scrollHeight) {
       this.refs.scroller.scrollTo({ y: 0 })
     }
-    else
-    if (contentHeight > scrollHeight) {
-      this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
+    // fix bottom blank if exsits
+    // else {
+    //   this.scrollToBottom()
+    // }
+    else {
+      this.refs.scroller.scrollTo({ y: scrollY })
     }
   }
 
