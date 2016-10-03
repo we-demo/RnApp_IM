@@ -5,12 +5,13 @@ import {
 
 export default class Message extends Component {
   render () {
+    const { user, text, color } = this.props.message
     return (
       <View>
-        <Text style={styles.text}>
-          {this.props.message.user.name}
+        <Text style={[styles.text, { color }]}>
+          {user.name}
           {': '}
-          {this.props.message.text}
+          {text}
         </Text>
       </View>
     )

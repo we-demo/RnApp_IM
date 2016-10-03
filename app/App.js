@@ -8,23 +8,26 @@ import Message from './components/Message'
 import AutoScroll from './components/AutoScroll'
 import ws from './ws'
 import _ from 'lodash'
+import Chance from 'chance'
 
 const noop = () => {}
+const chance = new Chance()
 const user = {
-  id: 'fritz.lin',
   name: 'Fritz',
 }
+const colors = ['#2196F3', '#009688', '#EF6C00', '#01579B', '#CCC907']
 
 export default class App extends Component {
   constructor () {
     super()
     this.state = {
-      messages: _.times(40, _.constant({
+      messages: _.times(40, () => ({
+        id: chance.guid(),
         user: {
-          id: 'royson.huang',
-          name: 'Royson',
+          name: chance.first(),
         },
-        text: 'Hello!'
+        text: chance.word(),
+        color: colors[_.random(0, colors.length - 1)]
       })),
       text: 'aaaa',
     }
@@ -74,6 +77,7 @@ export default class App extends Component {
   }
   sendMessage (msg) {
     ws.send(JSON.stringify({
+      id: chance.guid(),
       user,
       ...msg,
     }))
@@ -86,8 +90,8 @@ export default class App extends Component {
           <View style={styles.msgsView}>
             <AutoScroll
               contentContainerStyle={styles.scrollContainer}>
-              {this.state.messages.map((msg, i) => {
-                return <Message key={i} message={msg} />
+              {this.state.messages.map(msg => {
+                return <Message key={msg.id} message={msg} />
               })}
             </AutoScroll>
           </View>
