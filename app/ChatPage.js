@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import {
-  StyleSheet,
+  Platform, StyleSheet,
   Text, TextInput, View,
 } from 'react-native'
 import Spacer from 'react-native-keyboard-spacer'
@@ -25,7 +25,7 @@ export default class ChatPage extends Component {
         text: chance.word(),
         color: colors[_.random(0, colors.length - 1)]
       })),
-      text: 'aaaa',
+      text: '',
     }
 
     this.contentHeight = null
@@ -75,6 +75,8 @@ export default class ChatPage extends Component {
     })
   }
 
+  // KeyboardSpacer only fits iOS
+  // https://github.com/Andr3wHur5t/react-native-keyboard-spacer/issues/37
   render () {
     return (
       <View style={styles.bg}>
@@ -89,12 +91,13 @@ export default class ChatPage extends Component {
           </View>
 
           <TextInput ref="textInput" style={styles.textInput}
+            underlineColorAndroid="transparent"
             onChangeText={this.handleTextChange}
             onSubmitEditing={this.handleSubmit}
             blurOnSubmit={false}
             value={this.state.text} />
 
-          <Spacer />
+          {Platform.os === 'ios' && <Spacer />}
         </View>
       </View>
     )
@@ -104,8 +107,14 @@ export default class ChatPage extends Component {
 const styles = StyleSheet.create({
   bg: {
     backgroundColor: '#F5FCFF',
-    paddingTop: 20,
     flex: 1,
+
+    // iOS should pad status bar
+    ...Platform.select({
+      ios: {
+        paddingTop: 20
+      }
+    })
   },
   container: {
     flex: 1,
@@ -127,5 +136,13 @@ const styles = StyleSheet.create({
     height: 40,
     paddingLeft: 10,
     paddingRight: 10,
+
+    // Android TextInput has padding itself
+    paddingTop: 2,
+    paddingBottom: 6,
+
+    borderWidth: 0,
+    borderStyle: 'dotted',
+    borderColor: 'transparent',
   }
 })

@@ -1,13 +1,12 @@
 import React, { Component } from 'react'
 import {
-  StyleSheet,
+  Platform, StyleSheet,
   Text, TextInput, View,
 } from 'react-native'
 import Chance from 'chance'
 import Button from 'apsl-react-native-button'
 import ws from './ws'
 
-const noop = () => {}
 const chance = new Chance()
 
 export default class LoginPage extends Component {
@@ -29,7 +28,6 @@ export default class LoginPage extends Component {
 
   componentDidMount () {
     ws.addListener('open', this.handleWsOpen)
-    console.log('this.state', this.state)
   }
   componentWillUnmount () {
     ws.removeListener('open', this.handleWsOpen)
@@ -50,7 +48,7 @@ export default class LoginPage extends Component {
 
   login () {
     const { name, ready } = this.state
-    // if (!ready) return
+    if (!ready) return
 
     const user = { name: name.trim() }
 
@@ -63,12 +61,16 @@ export default class LoginPage extends Component {
     this.props.onLogin(user)
   }
 
+  // Android TextInput has bottom border itself
+  // using underlineColorAndroid="transparent"
+  // http://facebook.github.io/react-native/docs/textinput.html#textinput
   render () {
     return (
       <View style={styles.bg}>
         <View style={styles.container}>
           <View style={styles.inputWrapper}>
             <TextInput style={styles.input}
+              underlineColorAndroid="transparent"
               onChangeText={this.handleTextChange}
               value={this.state.name} />
           </View>
@@ -88,9 +90,16 @@ export default class LoginPage extends Component {
 const styles = StyleSheet.create({
   bg: {
     backgroundColor: '#F5FCFF',
-    paddingTop: 20,
     flex: 1,
+
+    // iOS should pad status bar
+    ...Platform.select({
+      ios: {
+        paddingTop: 20
+      }
+    })
   },
+
   container: {
     flex: 1,
     flexDirection: 'column',
@@ -110,6 +119,10 @@ const styles = StyleSheet.create({
     height: 50,
     paddingLeft: 10,
     paddingRight: 10,
+
+    // Android TextInput has padding itself
+    paddingTop: 0,
+    paddingBottom: 0,
   },
 
   button: {
