@@ -32,7 +32,10 @@ export default class AutoScroll extends Component {
 
   // todo: handle layout instead of keyboard
   handleKeyboardShow () {
-    this.scrollToBottom()
+    // wait for handleLayout (scrollHeight)
+    setTimeout(() => {
+      this.scrollToBottom()
+    }, 300)
   }
   handleKeyboardHide () {
     const { scrollY, scrollHeight, contentHeight } = this
@@ -83,9 +86,8 @@ export default class AutoScroll extends Component {
   }
   scrollToBottom () {
     const { scrollHeight, contentHeight } = this
-    if (scrollHeight == null) {
-      return
-    }
+    if (scrollHeight == null) return
+
     if (contentHeight > scrollHeight) {
       this.refs.scroller.scrollTo({ y: contentHeight - scrollHeight })
     }
