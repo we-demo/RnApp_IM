@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
 import {
-  Platform, StyleSheet,
+  Keyboard, Platform, StyleSheet,
   Text, TextInput, View,
 } from 'react-native'
-import Spacer from 'react-native-keyboard-spacer'
 import Message from './components/Message'
 import AutoScroll from './components/AutoScroll'
 import ws from './ws'
@@ -17,14 +16,16 @@ export default class ChatPage extends Component {
   constructor () {
     super()
     this.state = {
-      messages: _.times(40, () => ({
-        id: chance.guid(),
-        user: {
-          name: chance.first(),
-        },
-        text: chance.word(),
-        color: colors[_.random(0, colors.length - 1)]
-      })),
+      // messages: _.times(40, () => ({
+      //   id: chance.guid(),
+      //   user: {
+      //     name: chance.first(),
+      //   },
+      //   text: chance.word(),
+      //   color: colors[_.random(0, colors.length - 1)]
+      // })),
+      padding: 0,
+      messages: [],
       text: '',
     }
 
@@ -35,17 +36,34 @@ export default class ChatPage extends Component {
     // self binding
     ;[
       'handleTextChange', 'handleSubmit',
-      'handleMessage',
+      'handleWsMessage', 'handleWsClose',
+      'handleKeyboardShow', 'handleKeyboardHide',
     ].forEach(method => {
       this[method] = this[method].bind(this)
     })
   }
 
   componentDidMount () {
-    ws.addListener('message', this.handleMessage)
+    Keyboard.addListener('keyboardDidShow', this.handleKeyboardShow)
+    Keyboard.addListener('keyboardDidHide', this.handleKeyboardHide)
+    ws.addListener('message', this.handleWsMessage)
+    ws.addListener('close', this.handleWsClose)
+    ws.send({
+      type: 'allMessages'
+    })
   }
   componentWillUnmount () {
-    ws.removeListener('message', this.handleMessage)
+    Keyboard.addListener('keyboardDidShow', this.handleKeyboardShow)
+    Keyboard.addListener('keyboardDidHide', this.handleKeyboardHide)
+    ws.removeListener('message', this.handleWsMessage)
+    ws.addListener('close', this.handleWsClose)
+  }
+
+  handleKeyboardShow (e) {
+    this.setState({ padding: e.endCoordinates.height })
+  }
+  handleKeyboardHide () {
+    this.setState({ padding: 0 })
   }
 
   handleTextChange (text) {
@@ -58,13 +76,22 @@ export default class ChatPage extends Component {
     this.setState({ text: '' })
   }
 
-  handleMessage (data) {
-    console.log('WebSocket received: ' + data)
+  handleWsClose () {
+    this.props.onLogout()
+  }
+  handleWsMessage (data) {
+    console.log('WebSocket received: ', data)
 
-    // dispatch(receiveMessage(data))
-    this.setState({
-      messages: [...this.state.messages, data]
-    })
+    if (data.type === 'allMessages') {
+      this.setState({
+        messages: data.messages
+      })
+    }
+    else if (data.type === 'message') {
+      this.setState({
+        messages: [...this.state.messages, data]
+      })
+    }
   }
   sendMessage (msg) {
     const { user } = this.props
@@ -96,8 +123,6 @@ export default class ChatPage extends Component {
             onSubmitEditing={this.handleSubmit}
             blurOnSubmit={false}
             value={this.state.text} />
-
-          {Platform.os === 'ios' && <Spacer />}
         </View>
       </View>
     )
@@ -117,8 +142,7 @@ const styles = StyleSheet.create({
     })
   },
   container: {
-    flex: 1,
-    flexDirection: 'column',
+    flex: 1
   },
 
   msgsView: {
@@ -140,9 +164,5 @@ const styles = StyleSheet.create({
     // Android TextInput has padding itself
     paddingTop: 2,
     paddingBottom: 6,
-
-    borderWidth: 0,
-    borderStyle: 'dotted',
-    borderColor: 'transparent',
   }
 })

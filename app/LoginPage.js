@@ -13,27 +13,16 @@ export default class LoginPage extends Component {
   constructor () {
     super()
     this.state = {
-      ready: false,
       name: chance.first()
     }
 
     // self binding
     ;[
-      'handleWsOpen', 'handleTextChange',
+      'handleTextChange',
       'handleSubmit', 'handlePress'
     ].forEach((method) => {
       this[method] = this[method].bind(this)
     })
-  }
-
-  componentDidMount () {
-    ws.addListener('open', this.handleWsOpen)
-  }
-  componentWillUnmount () {
-    ws.removeListener('open', this.handleWsOpen)
-  }
-  handleWsOpen () {
-    this.setState({ ready: true })
   }
 
   handleTextChange (name) {
@@ -47,9 +36,7 @@ export default class LoginPage extends Component {
   }
 
   login () {
-    const { name, ready } = this.state
-    if (!ready) return
-
+    const { name } = this.state
     const user = { name: name.trim() }
 
     ws.send({

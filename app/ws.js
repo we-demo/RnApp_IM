@@ -1,9 +1,9 @@
-const ws = new WebSocket('ws://localhost:3000')
+const ws = new WebSocket('ws://192.168.1.2:3000')
 const EventEmitter = require('EventEmitter')
 const em = new EventEmitter()
 
 ws.onmessage = e => {
-  console.log('WebSocket received: ' + e.data)
+  console.log('WebSocket received: ', e.data)
   em.emit('message', JSON.parse(e.data))
 }
 
@@ -18,9 +18,13 @@ ws.onclose = e => {
 }
 
 ws.onerror = e => {
-  console.log('WebSocket error: ', e.message)
-  em.emit('close', e.message)
-  alert('WebSocket error: ' + e.message)
+  console.log('WebSocket error: ', e)
+
+  // message is null when ws closed
+  if (e.message) {
+    em.emit('error', e.message)
+    alert('WebSocket error: ' + e.message)
+  }
 }
 
 em.send = function send (data) {
